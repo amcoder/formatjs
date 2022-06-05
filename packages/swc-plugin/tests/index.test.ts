@@ -40,6 +40,9 @@ const FILES_TO_TESTS: Record<string, Opts> = {
   defineMessagesPreserveWhitespace: {
     preserveWhitespace: true,
   },
+  preserveDescription: {
+    preserveDescription: true,
+  },
 }
 
 describe('emit asserts for', function () {

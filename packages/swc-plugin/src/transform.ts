@@ -228,6 +228,10 @@ export interface Opts {
    * Filename
    */
   filename?: string
+  /**
+   * Whether to preserve the description.
+   */
+  preserveDescription?: boolean
 }
 
 const DEFAULT_OPTS: Omit<Opts, 'program'> = {
@@ -540,7 +544,8 @@ function setAttributesInObject(
   props: ObjectExpression['properties'],
   msg: MessageDescriptor,
   span: Span,
-  ast?: boolean
+  ast?: boolean,
+  preserveDescription?: boolean
 ): KeyValueProperty[] {
   const newProps: KeyValueProperty[] = [
     {
@@ -565,7 +570,8 @@ function setAttributesInObject(
     if (
       prop.type === 'KeyValueProperty' &&
       prop.key.type === 'Identifier' &&
-      MESSAGE_DESC_KEYS.includes(prop.key.value as keyof MessageDescriptor)
+      MESSAGE_DESC_KEYS.includes(prop.key.value as keyof MessageDescriptor) &&
+      (prop.key.value !== 'description' || !preserveDescription)
     ) {
       continue
     }
@@ -579,7 +585,8 @@ function setAttributesInObject(
 function generateNewProperties(
   {span, attributes = []}: JSXOpeningElement,
   msg: MessageDescriptor,
-  ast?: boolean
+  ast?: boolean,
+  preserveDescription?: boolean
 ): JSXAttribute[] {
   const newProps: JSXAttribute[] = [
     {
@@ -611,7 +618,8 @@ function generateNewProperties(
     if (
       prop.type === 'JSXAttribute' &&
       prop.name.type === 'Identifier' &&
-      MESSAGE_DESC_KEYS.includes(prop.name.value as keyof MessageDescriptor)
+      MESSAGE_DESC_KEYS.includes(prop.name.value as keyof MessageDescriptor) &&
+      (prop.name.value !== 'description' || !preserveDescription)
     ) {
       continue
     }
@@ -687,7 +695,8 @@ export class FormatJSTransformer extends Visitor {
                   id: msgs[i]?.id || '',
                 },
                 prop.value.span,
-                opts.ast
+                opts.ast,
+                opts.preserveDescription
               ),
               node.span
             ),
@@ -736,7 +745,8 @@ export class FormatJSTransformer extends Visitor {
                     id: msg.id,
                   },
                   descriptorsObj.expression.span,
-                  opts.ast
+                  opts.ast,
+                  opts.preserveDescription
                 ),
                 node.span
               ),
@@ -787,7 +797,8 @@ export class FormatJSTransformer extends Visitor {
           : msg.defaultMessage,
         id: msg.id,
       },
-      opts.ast
+      opts.ast,
+      opts.preserveDescription
     )
 
     return {
